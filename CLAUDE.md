@@ -66,8 +66,7 @@ Website oficial da **Dumentre** — arquitetos de sistemas autônomos.
 ## Como iniciar cada sessão
 
 1. Ler este `CLAUDE.md`
-2. Ler `docs/next-steps.md` para saber o que está pendente
-3. Ler `docs/roadmap.md` para entender a fase atual
+2. Ler `docs/roadmap.md` — seção "Agora" para tarefas imediatas e fase atual
 4. Identificar o que pode ser delegado ao `gemini -p` nesta sessão
 
 ## Roadmap (visão rápida)

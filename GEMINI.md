@@ -71,8 +71,7 @@ O Gemini CLI (`gemini -p`) é o caminho padrão para:
 ## Como iniciar cada sessão
 
 1. Ler este `GEMINI.md`
-2. Ler `docs/next-steps.md`
-3. Ler `docs/roadmap.md`
+2. Ler `docs/roadmap.md` — seção "Agora" para tarefas imediatas e fase atual
 
 ## Roadmap (visão rápida)
 

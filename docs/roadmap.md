@@ -4,6 +4,16 @@ Fases de desenvolvimento com critérios de conclusão e dependências.
 
 ---
 
+## Agora (próximas tarefas imediatas)
+
+- [ ] Criar projeto Next.js 15 com TypeScript e Tailwind v4
+- [ ] Configurar design tokens de marca em `globals.css` (Carvão `#1C1C1E`, Ouro `#C9A84C`)
+- [ ] Instalar e configurar shadcn/ui com tema customizado dark-first
+- [ ] Configurar tipografia via `next/font` (Inter)
+- [ ] Primeiro commit de scaffold e push para `main`
+
+---
+
 ## Fase 0 — Docs & Setup do Repositório
 **Status:** ✅ Em andamento
 **Objetivo:** Documentação completa e repositório pronto para receber código.

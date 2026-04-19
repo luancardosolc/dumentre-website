@@ -19,8 +19,7 @@ Website oficial da [Dumentre](https://dumentre.com) — arquitetos de sistemas a
 | [`docs/brand.md`](docs/brand.md) | Identidade visual, tom de voz, paleta, tipografia |
 | [`docs/content.md`](docs/content.md) | Mapa de conteúdo e copy de cada seção do site |
 | [`docs/architecture.md`](docs/architecture.md) | Decisões técnicas e ADRs |
-| [`docs/roadmap.md`](docs/roadmap.md) | Fases, milestones e critérios de conclusão |
-| [`docs/next-steps.md`](docs/next-steps.md) | Tarefas imediatas |
+| [`docs/roadmap.md`](docs/roadmap.md) | Fases, milestones, tarefas imediatas e critérios de conclusão |
 
 ## Contexto para IAs
 
