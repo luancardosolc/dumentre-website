@@ -12,8 +12,13 @@ Registro de decisões técnicas (ADRs) e diretrizes de implementação.
 | Linguagem | TypeScript | 5.x (strict) | Segurança de tipos em todo o projeto |
 | Estilo | Tailwind CSS | v4 | Velocidade de desenvolvimento, design tokens nativos |
 | Componentes | shadcn/ui | latest | Componentes sem lock-in, customizáveis |
-| Deploy | Vercel | — | Integração nativa Next.js, Edge Network global |
-| Animações | Framer Motion | — | Animações sutis (Fase 3) |
+| Formulários | React Hook Form + Zod | latest | Padrão de mercado, performance e validação tipada |
+| Deploy | Hetzner VPS (self-hosted) | — | Controle total, custo previsível, múltiplos projetos na mesma máquina |
+| Runtime | Node.js + PM2 | — | Gerenciamento de processos e alta disponibilidade |
+| Proxy | Nginx | — | Reverse proxy para múltiplos domínios e apps |
+| SSL | Certbot | — | HTTPS gratuito e automatizado |
+| Analytics | Google Analytics / Plausible | — | Monitoramento de conversão e comportamento |
+| Animações | Opcional (avaliar pós-MVP) | — | Adicionar apenas se houver necessidade real de UX |
 
 ---
 
@@ -60,13 +65,14 @@ Registro de decisões técnicas (ADRs) e diretrizes de implementação.
 **Data:** 2026-04-19
 **Status:** Aceito
 
-**Contexto:** shadcn/ui permite customização total via CSS variables, sem lock-in de biblioteca.
+**Contexto:** shadcn/ui permite customização total via CSS variables, sem lock-in de biblioteca. Padrão dominante em 2026.
 
-**Decisão:** Usar shadcal/ui como base de componentes, sobrescrevendo as CSS variables para a paleta Dumentre (Carvão + Ouro).
+**Decisão:** Usar shadcn/ui como base de componentes, sobrescrevendo as CSS variables para a paleta Dumentre (Carvão + Ouro).
 
 **Consequências:**
 - Componentes em `src/components/ui/`
 - Tema dark-first (fundo Carvão é o padrão)
+- Customização direta no código — sem dependência de configuração externa
 - Não criar componentes do zero se shadcn/ui já oferece a base
 
 ---
@@ -87,6 +93,8 @@ src/
 │   └── sections/           # seções da landing page (Hero, Services, etc.)
 ├── lib/
 │   └── utils.ts            # utilitários (cn, formatters)
+├── hooks/                  # hooks customizados (futuro)
+├── services/               # integrações externas (futuro)
 └── types/                  # tipos TypeScript compartilhados
 ```
 
@@ -97,14 +105,80 @@ src/
 **Data:** 2026-04-19
 **Status:** Planejado (Fase 3)
 
-**Decisão:** Usar a Metadata API do Next.js 15 (`generateMetadata`). Adicionar JSON-LD para SEO estruturado (Organization, WebSite).
+**Decisão:** Usar a Metadata API do Next.js 15 (`generateMetadata`). Adicionar JSON-LD para SEO estruturado (Organization, WebSite). Gerar `sitemap.xml` e `robots.txt` via Next.js.
+
+---
+
+## ADR-006: Deploy (Hetzner VPS)
+
+**Data:** 2026-04-19
+**Status:** Aceito
+
+**Contexto:** Necessidade de hospedar múltiplos projetos com controle total e custo previsível. Hetzner já é parte da infraestrutura pessoal.
+
+**Decisão:** Deploy self-hosted em VPS Hetzner (mesmo servidor que hospeda OpenBao e NetBird).
+
+**Stack de deploy:**
+- Node.js runtime
+- PM2 (process manager, restart automático)
+- Nginx (reverse proxy, múltiplos domínios)
+- Certbot (SSL/HTTPS gratuito)
+
+**Estrutura de diretórios no servidor:**
+```
+/var/www/
+├── dumentre-website/
+├── projeto-2/
+└── projeto-3/
+```
+
+**Fluxo de deploy inicial (manual):**
+```bash
+git pull
+npm ci
+npm run build
+pm2 restart dumentre-website
+```
+
+**Evolução futura (sem pressa):**
+- GitHub Actions para CI/CD automático
+- Coolify ou Docker para orquestração
+
+---
+
+## ADR-007: Formulários e validação
+
+**Data:** 2026-04-19
+**Status:** Aceito
+
+**Decisão:** React Hook Form + Zod.
+
+**Justificativa:**
+- Padrão dominante do mercado em 2026
+- Melhor performance (mínimo de re-renders)
+- Integração forte com TypeScript via inferência de schema Zod
+
+---
+
+## ADR-008: Estado e dados (futuro)
+
+**Data:** 2026-04-19
+**Status:** Planejado
+
+**Decisão futura:**
+- **Zustand** → estado de UI global (quando necessário)
+- **TanStack Query** → dados de API (quando necessário)
+
+**Justificativa:** Separação clara entre client state e server state. Adicionar apenas quando o projeto exigir — sem overengineering prematuro.
 
 ---
 
 ## Diretrizes gerais de implementação
 
-- **TypeScript strict:** sem `any` sem comentário justificando
-- **Mobile-first:** todos os componentes devem funcionar em 375px antes de desktop
+- **TypeScript strict:** sem `any` sem justificativa
+- **Mobile-first:** todos os componentes funcionam a partir de 375px
 - **Server Components por padrão:** `"use client"` apenas quando necessário
-- **Sem overengineering:** não criar abstrações antes de ter 3+ usos concretos
-- **Performance:** imagens via `next/image`, fontes via `next/font`
+- **Sem overengineering:** sem abstrações antes de 3+ usos concretos
+- **Performance:** `next/image` para imagens, `next/font` para tipografia
+- **Conversão-first:** clareza antes de efeitos visuais
+- **Deploy simples primeiro:** processo manual validado antes de automação
