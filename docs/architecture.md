@@ -18,6 +18,12 @@ Registro de decisões técnicas (ADRs) e diretrizes de implementação.
 | Proxy | Nginx | — | Reverse proxy para múltiplos domínios e apps |
 | SSL | Certbot | — | HTTPS gratuito e automatizado |
 | Analytics | Google Analytics / Plausible | — | Monitoramento de conversão e comportamento |
+| Testes unit/integration | Vitest | latest | Rápido, moderno, substitui Jest |
+| Testes UI | Testing Library | latest | Foco em comportamento, não em implementação |
+| Testes E2E | Playwright | latest | Testa o app real rodando no browser |
+| Git hooks | Husky + lint-staged | latest | Padrão de mercado — bloqueia commit quebrado |
+| Lint | ESLint | latest | Qualidade e consistência de código |
+| Format | Prettier | latest | Formatação automática |
 | Animações | Opcional (avaliar pós-MVP) | — | Adicionar apenas se houver necessidade real de UX |
 
 ---
@@ -160,7 +166,62 @@ pm2 restart dumentre-website
 
 ---
 
-## ADR-008: Estado e dados (futuro)
+## ADR-008: Estratégia de testes automatizados
+
+**Data:** 2026-04-19
+**Status:** Aceito
+
+**Contexto:** Sem testes automatizados o projeto não escala e não tem rede de segurança para mudanças.
+
+**Decisão:**
+
+| Camada | Tecnologia | Motivo |
+|---|---|---|
+| Unit / Integration | Vitest | Rápido, moderno, substitui Jest |
+| UI | Testing Library | Testa comportamento real do usuário |
+| E2E | Playwright | Valida o app rodando de verdade |
+| Git hooks | Husky + lint-staged | Bloqueia commit quebrado antes de entrar no repo |
+
+**Fluxo de qualidade por commit:**
+```
+git commit
+  → Husky pre-commit
+    → lint-staged (ESLint + Prettier nos arquivos alterados)
+    → tsc --noEmit (typecheck)
+    → vitest related --run (testes relacionados)
+  → ✅ commit liberado | ❌ commit bloqueado
+```
+
+**Configuração base (`package.json`):**
+```json
+{
+  "scripts": {
+    "test": "vitest",
+    "test:ci": "vitest run",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": ["eslint --fix", "vitest related --run"]
+  }
+}
+```
+
+**`.husky/pre-commit`:**
+```bash
+npx lint-staged
+npm run typecheck
+```
+
+**Consequências:**
+- Código quebrado não entra no repo
+- Feedback rápido no momento do commit
+- Base pronta para CI futuro (Playwright E2E no pipeline)
+- IAs (Codex, Claude) devem gerar testes junto com o código
+
+---
+
+## ADR-009: Estado e dados (futuro)
 
 **Data:** 2026-04-19
 **Status:** Planejado
