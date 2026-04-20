@@ -22,6 +22,9 @@ build/
 *.tsbuildinfo
 next-env.d.ts
 
+# Test coverage
+coverage/
+
 # OS
 .DS_Store
 Thumbs.db
