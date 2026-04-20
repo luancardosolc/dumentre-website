@@ -13,18 +13,18 @@ Registro de decisões técnicas (ADRs) e diretrizes de implementação.
 | Estilo | Tailwind CSS | v4 | Velocidade de desenvolvimento, design tokens nativos |
 | Componentes | shadcn/ui | latest | Componentes sem lock-in, customizáveis |
 | Formulários | React Hook Form + Zod | latest | Padrão de mercado, performance e validação tipada |
-| Deploy | Hetzner VPS (self-hosted) | — | Controle total, custo previsível, múltiplos projetos na mesma máquina |
+| Deploy | Hetzner VPS (self-hosted) | — | Controle total, custo previsível |
 | Runtime | Node.js + PM2 | — | Gerenciamento de processos e alta disponibilidade |
-| Proxy | Nginx | — | Reverse proxy para múltiplos domínios e apps |
+| Proxy | Nginx | — | Reverse proxy para múltiplos domínios |
 | SSL | Certbot | — | HTTPS gratuito e automatizado |
-| Analytics | Google Analytics / Plausible | — | Monitoramento de conversão e comportamento |
+| Analytics | Google Analytics (GA4) | — | Tracking de conversão e origem de leads |
 | Testes unit/integration | Vitest | latest | Rápido, moderno, substitui Jest |
-| Testes UI | Testing Library | latest | Foco em comportamento, não em implementação |
-| Testes E2E | Playwright | latest | Testa o app real rodando no browser |
-| Git hooks | Husky + lint-staged | latest | Padrão de mercado — bloqueia commit quebrado |
-| Lint | ESLint | latest | Qualidade e consistência de código |
+| Testes UI | Testing Library | latest | Testa comportamento real do usuário |
+| Testes E2E | Playwright | latest | Valida o app rodando de verdade |
+| Git hooks | Husky + lint-staged | latest | Bloqueia commit quebrado |
+| Lint | ESLint | latest | Qualidade de código |
 | Format | Prettier | latest | Formatação automática |
-| Animações | Opcional (avaliar pós-MVP) | — | Adicionar apenas se houver necessidade real de UX |
+| Animações | Opcional | — | Apenas se necessário para UX |
 
 ---
 
@@ -33,15 +33,13 @@ Registro de decisões técnicas (ADRs) e diretrizes de implementação.
 **Data:** 2026-04-19
 **Status:** Aceito
 
-**Contexto:** Next.js 15 com App Router é o padrão atual do framework.
-
-**Decisão:** Usar App Router com Server Components como padrão. Client Components apenas quando necessário (interatividade, hooks).
+Usar App Router com Server Components como padrão. Client Components apenas quando necessário (interatividade, hooks).
 
 **Consequências:**
 - Layouts em `app/layout.tsx`
 - Páginas em `app/page.tsx`
-- Componentes com estado usam `"use client"`
-- Metadados via `export const metadata` (sem `<Head>`)
+- `"use client"` apenas quando necessário
+- Metadados via `export const metadata`
 
 ---
 
@@ -50,9 +48,7 @@ Registro de decisões técnicas (ADRs) e diretrizes de implementação.
 **Data:** 2026-04-19
 **Status:** Aceito
 
-**Contexto:** Tailwind v4 usa CSS nativo para configuração (sem `tailwind.config.js`).
-
-**Decisão:** Usar Tailwind v4 com design tokens definidos via `@theme` em `globals.css`.
+Design tokens via `@theme` em `globals.css`.
 
 **Tokens de marca:**
 ```css
@@ -66,19 +62,16 @@ Registro de decisões técnicas (ADRs) e diretrizes de implementação.
 
 ---
 
-## ADR-003: shadcn/ui com tema customizado
+## ADR-003: shadcn/ui
 
 **Data:** 2026-04-19
 **Status:** Aceito
 
-**Contexto:** shadcn/ui permite customização total via CSS variables, sem lock-in de biblioteca. Padrão dominante em 2026.
-
-**Decisão:** Usar shadcn/ui como base de componentes, sobrescrevendo as CSS variables para a paleta Dumentre (Carvão + Ouro).
+Base de componentes com customização total via CSS variables. Sem lock-in.
 
 **Consequências:**
 - Componentes em `src/components/ui/`
-- Tema dark-first (fundo Carvão é o padrão)
-- Customização direta no código — sem dependência de configuração externa
+- Tema dark-first (fundo Carvão como padrão)
 - Não criar componentes do zero se shadcn/ui já oferece a base
 
 ---
@@ -93,14 +86,19 @@ src/
 ├── app/                    # App Router (páginas, layouts, metadata)
 │   ├── layout.tsx
 │   ├── page.tsx
-│   └── globals.css
+│   ├── globals.css
+│   └── api/
+│       └── lead/
+│           └── route.ts    # endpoint de captura de lead
 ├── components/
-│   ├── ui/                 # shadcn/ui (gerados via CLI)
-│   └── sections/           # seções da landing page (Hero, Services, etc.)
+│   ├── ui/                 # shadcn/ui
+│   └── sections/           # seções da landing page + LeadForm
 ├── lib/
-│   └── utils.ts            # utilitários (cn, formatters)
-├── hooks/                  # hooks customizados (futuro)
-├── services/               # integrações externas (futuro)
+│   ├── utils.ts            # utilitários (cn, formatters)
+│   ├── analytics.ts        # helper GA4 (trackEvent)
+│   └── utm.ts              # helper captura de UTM params
+├── hooks/                  # hooks customizados
+├── services/               # integrações externas (futuro: CRM, webhook)
 └── types/                  # tipos TypeScript compartilhados
 ```
 
@@ -109,9 +107,15 @@ src/
 ## ADR-005: SEO e Metadata
 
 **Data:** 2026-04-19
-**Status:** Planejado (Fase 3)
+**Status:** Aceito — **Fase 1** (crítico para aquisição de leads)
 
-**Decisão:** Usar a Metadata API do Next.js 15 (`generateMetadata`). Adicionar JSON-LD para SEO estruturado (Organization, WebSite). Gerar `sitemap.xml` e `robots.txt` via Next.js.
+**Decisão:**
+- Metadata via Next.js (`generateMetadata`)
+- Open Graph básico (título, descrição, imagem)
+- `sitemap.xml` gerado pelo Next.js
+- `robots.txt`
+
+SEO é parte do pipeline de aquisição — não é detalhe de polimento.
 
 ---
 
@@ -120,17 +124,15 @@ src/
 **Data:** 2026-04-19
 **Status:** Aceito
 
-**Contexto:** Necessidade de hospedar múltiplos projetos com controle total e custo previsível. Hetzner já é parte da infraestrutura pessoal.
+Deploy self-hosted em VPS Hetzner.
 
-**Decisão:** Deploy self-hosted em VPS Hetzner (mesmo servidor que hospeda OpenBao e NetBird).
-
-**Stack de deploy:**
+**Stack:**
 - Node.js runtime
 - PM2 (process manager, restart automático)
 - Nginx (reverse proxy, múltiplos domínios)
 - Certbot (SSL/HTTPS gratuito)
 
-**Estrutura de diretórios no servidor:**
+**Estrutura no servidor:**
 ```
 /var/www/
 ├── dumentre-website/
@@ -157,12 +159,12 @@ pm2 restart dumentre-website
 **Data:** 2026-04-19
 **Status:** Aceito
 
-**Decisão:** React Hook Form + Zod.
+React Hook Form + Zod. Padrão dominante de mercado em 2026.
 
 **Justificativa:**
-- Padrão dominante do mercado em 2026
-- Melhor performance (mínimo de re-renders)
-- Integração forte com TypeScript via inferência de schema Zod
+- Performance (mínimo de re-renders)
+- Validação tipada via inferência de schema Zod
+- Integração direta com shadcn/ui
 
 ---
 
@@ -171,25 +173,25 @@ pm2 restart dumentre-website
 **Data:** 2026-04-19
 **Status:** Aceito
 
-**Contexto:** Sem testes automatizados o projeto não escala e não tem rede de segurança para mudanças.
+| Camada | Tecnologia |
+|---|---|
+| Unit / Integration | Vitest |
+| UI | Testing Library |
+| E2E | Playwright |
+| Git hooks | Husky + lint-staged |
 
-**Decisão:**
+**Commit bloqueado se:**
+- lint falhar
+- typecheck falhar
+- testes relacionados falharem
 
-| Camada | Tecnologia | Motivo |
-|---|---|---|
-| Unit / Integration | Vitest | Rápido, moderno, substitui Jest |
-| UI | Testing Library | Testa comportamento real do usuário |
-| E2E | Playwright | Valida o app rodando de verdade |
-| Git hooks | Husky + lint-staged | Bloqueia commit quebrado antes de entrar no repo |
-
-**Fluxo de qualidade por commit:**
+**Fluxo:**
 ```
 git commit
-  → Husky pre-commit
-    → lint-staged (ESLint + Prettier nos arquivos alterados)
-    → tsc --noEmit (typecheck)
-    → vitest related --run (testes relacionados)
-  → ✅ commit liberado | ❌ commit bloqueado
+  → lint-staged (ESLint + Prettier nos arquivos alterados)
+  → tsc --noEmit
+  → vitest related --run
+  → ✅ liberado | ❌ bloqueado
 ```
 
 **Configuração base (`package.json`):**
@@ -207,18 +209,6 @@ git commit
 }
 ```
 
-**`.husky/pre-commit`:**
-```bash
-npx lint-staged
-npm run typecheck
-```
-
-**Consequências:**
-- Código quebrado não entra no repo
-- Feedback rápido no momento do commit
-- Base pronta para CI futuro (Playwright E2E no pipeline)
-- IAs (Codex, Claude) devem gerar testes junto com o código
-
 ---
 
 ## ADR-009: Estado e dados (futuro)
@@ -226,20 +216,96 @@ npm run typecheck
 **Data:** 2026-04-19
 **Status:** Planejado
 
-**Decisão futura:**
 - **Zustand** → estado de UI global (quando necessário)
 - **TanStack Query** → dados de API (quando necessário)
 
-**Justificativa:** Separação clara entre client state e server state. Adicionar apenas quando o projeto exigir — sem overengineering prematuro.
+Adicionar apenas quando o projeto exigir. Sem overengineering prematuro.
+
+---
+
+## ADR-010: Lead Tracking e Conversão
+
+**Data:** 2026-04-19
+**Status:** Aceito — **CRÍTICO**
+
+**Objetivo:** Transformar o site em máquina de geração de leads rastreáveis.
+
+### Pipeline de conversão
+
+```
+visit → interação → formulário → lead capturado → evento GA4
+```
+
+### Captura de UTM
+
+Capturar automaticamente na entrada do site:
+- `utm_source`
+- `utm_medium`
+- `utm_campaign`
+
+Persistir em `localStorage`. Enviar junto com o payload do lead.
+
+```ts
+// lib/utm.ts
+getUTMParams(): { utm_source?: string; utm_medium?: string; utm_campaign?: string }
+```
+
+### Eventos GA4 obrigatórios
+
+| Evento | Quando disparar |
+|---|---|
+| `page_view` | automático |
+| `click_cta` | clique no botão principal |
+| `generate_lead` | após envio do formulário |
+
+```ts
+// lib/analytics.ts
+trackEvent('generate_lead', { source: 'website', utm_source, utm_medium, utm_campaign })
+```
+
+### Estrutura do lead
+
+```json
+{
+  "name": "string",
+  "email": "string",
+  "phone": "string",
+  "utm_source": "string",
+  "utm_medium": "string",
+  "utm_campaign": "string"
+}
+```
+
+### Endpoint de captura
+
+```
+POST /api/lead
+```
+
+### Persistência inicial (simples)
+
+Log estruturado ou arquivo JSON local. Estrutura preparada para troca futura por DB ou CRM sem retrabalho.
+
+### Integrações futuras (sem pressa)
+
+- HubSpot
+- Webhook externo
+- Banco de dados
+
+### Objetivo de negócio
+
+- Saber de onde vem cada lead
+- Medir taxa de conversão por canal
+- Otimizar aquisição com dados reais
 
 ---
 
 ## Diretrizes gerais de implementação
 
 - **TypeScript strict:** sem `any` sem justificativa
-- **Mobile-first:** todos os componentes funcionam a partir de 375px
+- **Mobile-first:** base em 375px
 - **Server Components por padrão:** `"use client"` apenas quando necessário
 - **Sem overengineering:** sem abstrações antes de 3+ usos concretos
-- **Performance:** `next/image` para imagens, `next/font` para tipografia
-- **Conversão-first:** clareza antes de efeitos visuais
+- **Performance:** `next/image`, `next/font`
+- **Conversão acima de estética:** clareza antes de efeitos visuais
 - **Deploy simples primeiro:** processo manual validado antes de automação
